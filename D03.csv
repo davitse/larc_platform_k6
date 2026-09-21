@@ -1,0 +1,34 @@
+﻿Field,Value
+Test Case ID,TC-PERF-D03
+Test Case Title,Concurrent Dashboard Viewer Load Test (D03)
+Related Reviewer Comment,"""The system was tested only in two rooms with two nodes EnviBox1 and EnviBox2. Are two devices not enough to confirm the scalability of the system? It is necessary to demonstrate the operation of the system in a real heterogeneous environment with dozens of nodes. The limited scale of deployment is a drawback."""
+Objective,"Demonstrate, with an automated load test against the live system, that the backoffice dashboard can serve multiple concurrent viewers - from different simulated browsers/devices - reliably and with low latency, as part of the broader scalability evidence for the reviewer's comment."
+Test Type,Performance / Load Test (non-functional) - dashboard/read path only
+Priority,High - directly supports response to reviewer-flagged scalability limitation
+Test Tool / Framework,Grafana k6 (JavaScript load-testing tool)
+Test Script,D03.js  (folder: C:\Users\ASUS\larcK6Test)
+Related Files,"labmonitor-scalability-test.js (combined node+dashboard test); README.md; LARC_Performance_TestCase.xlsx (TC-PERF-001, combined test case)"
+System Under Test (SUT),http://larcmonitor.up.ac.th/backoffice/labmonitor
+Scope Note,"D03 isolates only the dashboard-viewer concurrency scenario from TC-PERF-001. It does not test node/sensor data ingestion - see the combined script/test case for that, pending a confirmed ingestion endpoint."
+Preconditions,"1) k6 is installed on the test machine. 2) If the dashboard requires login, a valid backoffice test account is available and supplied via LARC_USERNAME / LARC_PASSWORD environment variables (never hardcoded). 3) LOGIN_PATH, USERNAME_FIELD, PASSWORD_FIELD in D03.js are confirmed against the real login form if auth is required. 4) The larcmonitor.up.ac.th server is reachable from the machine running the test."
+Test Environment,Target: production/staging instance of larcmonitor.up.ac.th. Load generator: a single machine running k6 (client-side simulation of multiple remote dashboard viewers).
+Simulated Client Diversity (heterogeneous viewers),"5 simulated browser/device profiles via rotating User-Agent headers: Windows Chrome, macOS Chrome, Windows Firefox, iOS Safari (mobile), Android Chrome (mobile)"
+Load Profile - Peak Concurrent Viewers,15 virtual users (configurable via -e DASHBOARD_VUS)
+Load Profile - Ramp-up Duration,"2 minutes, 0 -> peak (configurable via -e RAMP_UP)"
+Load Profile - Steady-State Duration,3 minutes at peak (configurable via -e STEADY)
+Load Profile - Ramp-down Duration,"1 minute, peak -> 0 (configurable via -e RAMP_DOWN)"
+Load Profile - Total Test Duration,~6 minutes
+Load Profile - View Interval per Viewer,"5-10 seconds (randomized), simulating a human glancing at a live dashboard"
+Test Steps,"1. Confirm whether the dashboard requires login; if so, confirm LOGIN_PATH/field names and set LARC_USERNAME/LARC_PASSWORD. 2. Install k6 on the test machine. 3. From the larcK6Test folder, run: k6 run D03.js  (add -e LARC_USERNAME=... -e LARC_PASSWORD=... if needed). 4. Let the test run through ramp-up (2m), steady-state (3m) and ramp-down (1m) - about 6 minutes. 5. Watch the live k6 console summary for threshold pass/fail status. 6. After completion, collect the generated D03-summary.json. 7. Record the achieved latency percentiles, error rate and total requests served at peak concurrency. 8. Compare results against the acceptance criteria below and record findings for the paper revision / response to reviewers."
+Expected Result,"The dashboard serves 15 concurrent viewers, simulated from 5 different browser/device profiles, throughout a sustained 6-minute load window, returning HTTP 200 with valid content for every request and staying within the latency thresholds below."
+Acceptance Criteria - Overall HTTP request failure rate,< 2%  (k6 threshold key: http_req_failed)
+Acceptance Criteria - Overall HTTP request duration (p95),< 2000 ms  (k6 threshold key: http_req_duration)
+Acceptance Criteria - Dashboard load duration (p95),< 2500 ms  (k6 threshold key: dashboard_load_duration)
+Acceptance Criteria - Login failure rate,< 5%  (k6 threshold key: login_failure_rate)
+Acceptance Criteria - Test Verdict,PASS only if ALL k6 thresholds above report 'pass' in the run summary
+Actual Result,
+Status (Pass / Fail),
+Executed By,
+Execution Date,
+Evidence / Attachments,"e.g. D03-summary.json, console output, screenshots"
+Remarks / Notes,
